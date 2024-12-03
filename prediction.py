@@ -1,11 +1,6 @@
-from flask import Flask, render_template, request, jsonify
 import pandas as pd
 import joblib
 import numpy as np
-from datetime import datetime
-
-# Initialize the Flask app
-app = Flask(__name__)
 
 # Load the pre-trained models
 xgb_model_high = joblib.load('xgb_model_high.pkl')
@@ -151,13 +146,11 @@ def predict_for_date(input_date, df, xgb_model_high, xgb_model_low, scaler, stac
     threshold = 0.4
     y_pred_adjusted = (y_pred_proba >= threshold).astype(int)
 
-    # Adjust trend if consecutive bearish predictions occur
     if consecutive_bearish == 2:
         y_pred_adjusted = 1
 
     trend_label = 'Bullish' if y_pred_adjusted == 1 else 'Bearish'
 
-    # Update consecutive bearish counter
     if trend_label == "Bearish":
         consecutive_bearish += 1
     else:
@@ -165,47 +158,13 @@ def predict_for_date(input_date, df, xgb_model_high, xgb_model_low, scaler, stac
 
     return predicted_high, predicted_low, trend_label
 
-# Route for the home page (renders the HTML form)
-@app.route('/')
-def index():
-    return render_template('index2.html')
+# Input date for prediction
+input_date = '2024-12-02'
 
-# Route for making predictions (handles POST request from the form)
-@app.route('/predict', methods=['POST'])
-def predict():
-    try:
-        # Get the date from the request
-        data = request.get_json()
-        input_date = data.get('date')
+# Make predictions
+predicted_high, predicted_low, trend_label = predict_for_date(input_date, df, xgb_model_high, xgb_model_low, scaler, stacking_model, training_columns)
 
-        if not input_date:
-            return jsonify({'error': 'Date is required'}), 400
-
-        # Validate date format
-        try:
-            datetime.strptime(input_date, '%Y-%m-%d')
-        except ValueError:
-            return jsonify({'error': 'Invalid date format. Use YYYY-MM-DD.'}), 400
-
-        # Make predictions using the input date
-        predicted_high, predicted_low, trend_label = predict_for_date(input_date, df, xgb_model_high, xgb_model_low, scaler, stacking_model, training_columns)
-
-        # Convert numpy.float32 to Python float (JSON serializable)
-        predicted_high = float(predicted_high)
-        predicted_low = float(predicted_low)
-
-        # Return the predictions as a JSON response
-        return jsonify({
-            'predicted_high': predicted_high,
-            'predicted_low': predicted_low,
-            'predicted_trend': trend_label
-        })
-    
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-
-# Run the Flask app
-if __name__ == '__main__':
-    app.run(debug=True)
-
+# Print the predictions
+print(f"Predicted High Price: {predicted_high}")
+print(f"Predicted Low Price: {predicted_low}")
+print(f"Predicted Trend: {trend_label}")
