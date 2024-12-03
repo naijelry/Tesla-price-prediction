@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tesla Stock Price Predictor</title>
+    <style>
+        /* General reset and body styles */
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f4f8;
+            text-align: center;
+            color: #333;
+        }
+
+        /* Header styling */
+        h1 {
+            font-size: 3em;
+            color: #3f51b5;
+            margin-top: 50px;
+            font-weight: bold;
+        }
+
+        /* Form styling */
+        form {
+            background: linear-gradient(135deg, #ff7e5f, #feb47b);
+            margin: 50px auto;
+            padding: 40px;
+            border-radius: 10px;
+            width: 350px;
+            box-shadow: 0 15px 25px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        form:hover {
+            transform: translateY(-10px);
+        }
+
+        input[type="date"] {
+            padding: 12px;
+            width: 100%;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            margin-bottom: 20px;
+            box-sizing: border-box;
+        }
+
+        button {
+            padding: 15px;
+            width: 100%;
+            border: none;
+            border-radius: 5px;
+            background-color: #28a745;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+
+        /* Result box styling */
+        #result {
+            display: none;
+            margin: 20px auto;
+            background-color: white;
+            padding: 25px;
+            width: 350px;
+            border-radius: 10px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+            transition: opacity 0.3s ease;
+        }
+
+        /* Styling for each result item */
+        #result p {
+            font-size: 18px;
+            margin: 10px 0;
+        }
+
+        #result span {
+            font-weight: bold;
+        }
+
+        /* Quote Section Styling */
+        #quote {
+            background-color: #ff9800;
+            color: white;
+            font-size: 20px;
+            font-style: italic;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 30px;
+            width: 350px;
+            margin: 20px auto;
+            box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease-in-out;
+        }
+
+        #quote:hover {
+            transform: scale(1.05);
+        }
+
+        /* Responsive Design */
+        @media screen and (max-width: 600px) {
+            form, #result, #quote {
+                width: 90%;
+            }
+
+            h1 {
+                font-size: 2.5em;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Tesla Stock Price Predictor</h1>
+
+    <!-- Prediction Form -->
+    <form id="predictForm">
+        <input type="date" id="date" name="date" required>
+        <button type="submit">Get Prediction</button>
+    </form>
+
+    <!-- Result Section -->
+    <div id="result">
+        <h3>Prediction Results</h3>
+        <p><strong>High Price:</strong> $<span id="high"></span></p>
+        <p><strong>Low Price:</strong> $<span id="low"></span></p>
+        <p><strong>Trend:</strong> <span id="trend"></span></p>
+    </div>
+
+    <!-- Quote Section -->
+    <div id="quote">
+        Investing in stocks is like riding a roller coaster. It's all fun and games until the market drops.
+    </div>
+
+    <!-- JavaScript for Fetching Data -->
+    <script>
+        document.getElementById("predictForm").addEventListener("submit", function(e) {
+            e.preventDefault();
+            const date = document.getElementById("date").value;
+            fetch('/predict', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ date: date })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    document.getElementById("high").innerText = data.predicted_high.toFixed(2);  // High Price
+                    document.getElementById("low").innerText = data.predicted_low.toFixed(2);    // Low Price
+                    document.getElementById("trend").innerText = data.predicted_trend;            // Trend
+                    document.getElementById("result").style.display = "block";  // Show results
+                    document.getElementById("quote").style.display = "block";  // Show quote
+                }
+            })
+            .catch(error => alert("Error: " + error.message));
+        });
+    </script>
+
+</body>
+</html>
